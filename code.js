@@ -908,7 +908,7 @@ async function executePhaseA(styles, overrideTheme) {
 
     figma.root.setPluginData('styletotoken-v1', 'true');
 
-
+    await figma.loadAllPagesAsync();
     var componentNodes = figma.root.findAllWithCriteria({ types: ['COMPONENT'] });
     figma.ui.postMessage({
       type: 'phase_a_complete',
@@ -1290,6 +1290,7 @@ async function executeUpdateMigration() {
 
     figma.root.setPluginData('styletotoken-v1', 'true');
 
+    await figma.loadAllPagesAsync();
     var componentNodes = figma.root.findAllWithCriteria({ types: ['COMPONENT'] });
     figma.ui.postMessage({
       type: 'phase_a_complete',
