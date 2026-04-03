@@ -828,7 +828,7 @@ async function runPlugin(overrideTheme) {
     }
 
     // Check existing variables
-    var existingCollections = await figma.variables.getLocalVariableCollectionsAsync();
+    var existingCollections = figma.variables.getLocalVariableCollections();
     if (existingCollections.length > 0) {
       figma.ui.postMessage({ type: 'confirm_existing', count: existingCollections.length });
       pendingRun = true;
@@ -885,7 +885,7 @@ async function executePhaseA(styles, overrideTheme) {
     figma.ui.postMessage({ type: 'phase', phase: 3, done: true });
 
     // Read accurate counts from actual collections (handles edge cases where some were skipped)
-    var finalCollections = await figma.variables.getLocalVariableCollectionsAsync();
+    var finalCollections = figma.variables.getLocalVariableCollections();
     var primColl = finalCollections.find(function(c) { return c.name === 'Primitives'; });
     var semColl = finalCollections.find(function(c) { return c.name === 'Semantic'; });
     var compColl = finalCollections.find(function(c) { return c.name === 'Component'; });
@@ -930,12 +930,12 @@ async function executePhaseA(styles, overrideTheme) {
 async function buildContextMapsFromCollections() {
   var result = { semByFillContextKey: {}, semByStrokeContextKey: {} };
 
-  var allCollections = await figma.variables.getLocalVariableCollectionsAsync();
+  var allCollections = figma.variables.getLocalVariableCollections();
   var semColl = allCollections.find(function(c) { return c.name === 'Semantic'; });
   var primColl = allCollections.find(function(c) { return c.name === 'Primitives'; });
   if (!semColl || !primColl) return result;
 
-  var allVars = await figma.variables.getLocalVariablesAsync('COLOR');
+  var allVars = figma.variables.getLocalVariables('COLOR');
   var primVarById = {};
   allVars.forEach(function(v) {
     if (v.variableCollectionId === primColl.id) primVarById[v.id] = v;
@@ -995,7 +995,7 @@ async function buildContextMapsFromCollections() {
 async function buildContextMapsFromNodes(allNodes) {
   var semByFillContextKey = {};
   var semByStrokeContextKey = {};
-  var boundVars = await figma.variables.getLocalVariablesAsync('COLOR');
+  var boundVars = figma.variables.getLocalVariables('COLOR');
   var semVarById = {};
   boundVars.forEach(function(v) { semVarById[v.id] = v; });
 
@@ -1035,7 +1035,7 @@ async function buildContextMapsFromNodes(allNodes) {
 }
 
 async function executeRebindOnly(scope) {
-  var allCollections = await figma.variables.getLocalVariableCollectionsAsync();
+  var allCollections = figma.variables.getLocalVariableCollections();
   var primColl = allCollections.find(function(c) { return c.name === 'Primitives'; });
   var semColl = allCollections.find(function(c) { return c.name === 'Semantic'; });
   var compColl = allCollections.find(function(c) { return c.name === 'Component'; });
@@ -1148,7 +1148,7 @@ async function executePhaseB(scope) {
 async function executeScan() {
   await figma.loadAllPagesAsync();
   var styles = await figma.getLocalPaintStylesAsync();
-  var allCollections = await figma.variables.getLocalVariableCollectionsAsync();
+  var allCollections = figma.variables.getLocalVariableCollections();
   var existingCount = allCollections.length;
   var detectedTheme = detectTheme(styles);
   var componentNodes = figma.root.findAllWithCriteria({ types: ['COMPONENT'] });
@@ -1186,7 +1186,7 @@ var pendingOverrideTheme = null;
 
 async function executeUpdateMigration() {
   try {
-    var allCollections = await figma.variables.getLocalVariableCollectionsAsync();
+    var allCollections = figma.variables.getLocalVariableCollections();
     var primColl = allCollections.find(function(c) { return c.name === 'Primitives'; });
     var semColl  = allCollections.find(function(c) { return c.name === 'Semantic'; });
 
@@ -1206,7 +1206,7 @@ async function executeUpdateMigration() {
     figma.ui.postMessage({ type: 'status', message: 'Updating Primitives...' });
 
     // Step 1: capture old Primitive name for each Semantic alias (by var ID)
-    var allVars = await figma.variables.getLocalVariablesAsync('COLOR');
+    var allVars = figma.variables.getLocalVariables('COLOR');
     var oldPrimById = {};
     allVars.filter(function(v) { return v.variableCollectionId === primColl.id; })
       .forEach(function(v) { oldPrimById[v.id] = v; });
@@ -1247,8 +1247,8 @@ async function executeUpdateMigration() {
     figma.ui.postMessage({ type: 'status', message: 'Re-linking Semantic aliases...' });
 
     // Step 4: index new Primitive vars by name
-    var newAllVars = await figma.variables.getLocalVariablesAsync('COLOR');
-    var newPrimColl = (await figma.variables.getLocalVariableCollectionsAsync()).find(function(c) { return c.name === 'Primitives'; });
+    var newAllVars = figma.variables.getLocalVariables('COLOR');
+    var newPrimColl = (figma.variables.getLocalVariableCollections()).find(function(c) { return c.name === 'Primitives'; });
     var newPrimsByName = {};
     if (newPrimColl) {
       newAllVars.filter(function(v) { return v.variableCollectionId === newPrimColl.id; })
@@ -1273,7 +1273,7 @@ async function executeUpdateMigration() {
     // Step 6: build phaseAState so Phase B (rebind) works if user wants it
     var rebuildMaps = await buildContextMapsFromCollections();
     var allNodes = await loadAllNodes();
-    var finalColls = await figma.variables.getLocalVariableCollectionsAsync();
+    var finalColls = figma.variables.getLocalVariableCollections();
     var fPrimColl = finalColls.find(function(c) { return c.name === 'Primitives'; });
     var fSemColl  = finalColls.find(function(c) { return c.name === 'Semantic'; });
     var fCompColl = finalColls.find(function(c) { return c.name === 'Component'; });
