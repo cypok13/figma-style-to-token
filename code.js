@@ -935,7 +935,7 @@ async function buildContextMapsFromCollections() {
   var primColl = allCollections.find(function(c) { return c.name === 'Primitives'; });
   if (!semColl || !primColl) return result;
 
-  var allVars = figma.variables.getLocalVariables('COLOR');
+  var allVars = await figma.variables.getLocalVariablesAsync('COLOR');
   var primVarById = {};
   allVars.forEach(function(v) {
     if (v.variableCollectionId === primColl.id) primVarById[v.id] = v;
@@ -995,7 +995,7 @@ async function buildContextMapsFromCollections() {
 async function buildContextMapsFromNodes(allNodes) {
   var semByFillContextKey = {};
   var semByStrokeContextKey = {};
-  var boundVars = figma.variables.getLocalVariables('COLOR');
+  var boundVars = await figma.variables.getLocalVariablesAsync('COLOR');
   var semVarById = {};
   boundVars.forEach(function(v) { semVarById[v.id] = v; });
 
@@ -1206,7 +1206,7 @@ async function executeUpdateMigration() {
     figma.ui.postMessage({ type: 'status', message: 'Updating Primitives...' });
 
     // Step 1: capture old Primitive name for each Semantic alias (by var ID)
-    var allVars = figma.variables.getLocalVariables('COLOR');
+    var allVars = await figma.variables.getLocalVariablesAsync('COLOR');
     var oldPrimById = {};
     allVars.filter(function(v) { return v.variableCollectionId === primColl.id; })
       .forEach(function(v) { oldPrimById[v.id] = v; });
@@ -1247,7 +1247,7 @@ async function executeUpdateMigration() {
     figma.ui.postMessage({ type: 'status', message: 'Re-linking Semantic aliases...' });
 
     // Step 4: index new Primitive vars by name
-    var newAllVars = figma.variables.getLocalVariables('COLOR');
+    var newAllVars = await figma.variables.getLocalVariablesAsync('COLOR');
     var newPrimColl = (await figma.variables.getLocalVariableCollectionsAsync()).find(function(c) { return c.name === 'Primitives'; });
     var newPrimsByName = {};
     if (newPrimColl) {
