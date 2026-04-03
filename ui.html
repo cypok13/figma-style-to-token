@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none';">
+<meta charset="UTF-8" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --color-brand-primary: #7F56D9;
+    --color-brand-secondary-bg: #F4EBFF;
+    --color-brand-text: #6941C6;
+    --color-text-primary: #171717;
+    --color-text-secondary: #404040;
+    --color-text-tertiary: #525252;
+    --color-border: #D4D4D4;
+    --color-border-secondary: #E5E5E5;
+    --color-bg-primary: #FFFFFF;
+    --color-bg-secondary: #FAFAFA;
+    --color-bg-disabled: #F5F5F5;
+    --color-success-bg: #DCFCE7;
+    --color-warning-bg: #FEFCE8;
+    --color-warning-text: #A16207;
+    --color-warning-border: #FCD34D;
+    --color-error: #DC2626;
+    --color-error-bg: #FEE2E2;
+    --color-purple-badge-bg: #F9F5FF;
+    --color-purple-badge-text: #6941C6;
+    --color-progress-track: #F5F5F5;
+    --color-progress-fill: #7F56D9;
+    --color-badge-gray-bg: #F5F5F5;
+    --color-badge-gray-text: #404040;
+    --shadow-xs: 0px 1px 2px 0px rgba(0,0,0,0.05);
+    --shadow-sm: 0px 1px 2px 0px rgba(0,0,0,0.06);
+    --shadow-xl: 0px 8px 8px -4px rgba(0,0,0,0.03), 0px 20px 24px -4px rgba(0,0,0,0.08);
+  }
+
+  html, body {
+    overflow: hidden !important;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    width: 470px;
+    overflow: hidden !important;
+    zoom: 0.75;
+  }
+
+  /* ── Screens ── */
+  .screen { display: none; padding: 24px; flex-direction: column; gap: 24px; }
+  .screen.active { display: flex; }
+
+  /* ── Divider ── */
+  .divider {
+    height: 1px;
+    background: var(--color-border-secondary);
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  /* ── Section label ── */
+  .section-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-brand-text);
+    line-height: 20px;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    width: 100%;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-primary {
+    background: var(--color-brand-primary);
+    color: #FFFFFF;
+    border: 1px solid var(--color-brand-primary);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .btn-primary:hover:not(:disabled) { opacity: 0.92; }
+
+  .btn-ghost {
+    background: var(--color-bg-primary);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .btn-ghost:hover:not(:disabled) { background: var(--color-bg-secondary); }
+
+  .btn-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+
+  /* ── Badge (pill) ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .badge-gray {
+    background: var(--color-badge-gray-bg);
+    color: var(--color-badge-gray-text);
+  }
+
+  /* ── Info badges (rounded card) ── */
+  .info-badge {
+    border-radius: 16px;
+    padding: 20px;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .info-badge-purple {
+    background: var(--color-purple-badge-bg);
+    color: var(--color-purple-badge-text);
+  }
+
+  .info-badge-yellow {
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+  }
+
+  .warning-badge {
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    width: 100%;
+    flex-shrink: 0;
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    border: 1px solid var(--color-warning-border);
+  }
+
+  /* ── Feature row ── */
+  .feature-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .feature-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 28px;
+    background: var(--color-brand-secondary-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .feature-icon-wrap.success {
+    background: var(--color-success-bg);
+  }
+
+  .feature-text-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .feature-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 28px;
+  }
+
+  .feature-desc {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--color-text-tertiary);
+    line-height: 24px;
+  }
+
+  /* ── Screen header ── */
+  .screen-header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .screen-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 32px;
+  }
+
+  .screen-subtitle {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--color-text-tertiary);
+    line-height: 24px;
+  }
+
+  /* ── Logo header ── */
+  .logo-header {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .logo-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--color-bg-primary);
+  }
+
+  .logo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* ── Source theme card ── */
+  .theme-card {
+    background: var(--color-bg-secondary);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .theme-text-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex: 1;
+  }
+
+  .theme-text-primary {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--color-text-primary);
+    line-height: 24px;
+  }
+
+  .theme-text-secondary {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--color-text-tertiary);
+    line-height: 24px;
+  }
+
+  /* ── Theme toggle button group ── */
+  .theme-toggle {
+    display: flex;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-xs);
+    flex-shrink: 0;
+    width: 128px;
+  }
+
+  .theme-btn {
+    flex: 1;
+    height: 36px;
+    border: none;
+    border-right: 1px solid var(--color-border);
+    background: var(--color-bg-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+
+  .theme-btn:last-child { border-right: none; }
+
+  .theme-btn.active {
+    background: #0a0a0a;
+  }
+
+  .theme-btn.active svg path,
+  .theme-btn.active svg circle {
+    stroke: #ffffff;
+  }
+
+  .theme-btn:hover:not(.active) {
+    background: var(--color-bg-secondary);
+  }
+
+  /* ── Existing vars section ── */
+  .warn-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .warn-section-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-warning-text);
+    line-height: 20px;
+  }
+
+  /* ── Value blocks ── */
+  .value-blocks {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .value-block {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: 21px;
+    display: flex;
+    align-items: center;
+    padding: 11px 21px;
+    box-shadow: var(--shadow-sm);
+    transition: opacity 0.3s;
+  }
+
+  .value-block.dimmed { opacity: 0.5; }
+
+  .value-block-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .value-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 27px;
+    background: var(--color-bg-disabled);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .value-icon-wrap.success { background: var(--color-success-bg); }
+
+  .value-number-wrap {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .value-number {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 32px;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+  }
+
+  .value-label {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    line-height: 21px;
+    white-space: nowrap;
+  }
+
+  /* ── Progress bar ── */
+  .progress-wrap {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 8px;
+    background: var(--color-progress-track);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 8px;
+    width: 0%;
+    background: var(--color-progress-fill);
+    border-radius: 4px;
+    transition: width 0.2s linear;
+  }
+
+  .progress-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    line-height: 20px;
+    white-space: nowrap;
+  }
+
+  /* ── Step circles (success next steps) ── */
+  .step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 28px;
+    background: var(--color-brand-secondary-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-brand-text);
+    line-height: 28px;
+  }
+
+  /* ── Success gradient ── */
+  .success-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 532px;
+    background: linear-gradient(to bottom, rgba(240,253,244,0.5), rgba(240,253,244,0));
+    pointer-events: none;
+  }
+
+  /* ── Built by ── */
+  .built-by {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--color-text-tertiary);
+    line-height: 24px;
+    text-align: center;
+    width: 100%;
+  }
+
+  .built-by span {
+    color: var(--color-brand-primary);
+  }
+
+  /* ── Error bar (fixed overlay) ── */
+  #error-bar {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--color-error-bg);
+    border-bottom: 1px solid var(--color-error);
+    padding: 12px 16px;
+    z-index: 200;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  #error-bar.visible { display: flex; }
+
+  .error-bar-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-error);
+    line-height: 20px;
+  }
+
+  /* ── Confirmation overlay ── */
+  #confirm-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 150;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #confirm-overlay.visible { display: flex; }
+
+  .confirm-box {
+    background: var(--color-bg-primary);
+    border-radius: 12px;
+    padding: 24px;
+    width: 400px;
+    box-shadow: var(--shadow-xl);
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .confirm-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .confirm-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 28px;
+  }
+
+  .confirm-body {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-text-tertiary);
+    line-height: 20px;
+  }
+
+  .confirm-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .confirm-actions .btn {
+    flex: 1;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .confirm-actions .btn-ghost-auto {
+    flex: none;
+    height: 40px;
+    padding: 0 16px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    background: var(--color-bg-primary);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-xs);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+
+  .confirm-actions .btn-ghost-auto:hover { background: var(--color-bg-secondary); }
+
+
+  /* ── Scope selector ── */
+  .scope-label {
+    font-size: 19px;
+    font-weight: 600;
+    color: #6941C6;
+    line-height: 27px;
+  }
+
+  .scope-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .scope-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-secondary);
+    background: var(--color-bg-primary);
+    cursor: pointer;
+  }
+
+  .scope-option-selected {
+    border: 2px solid #7F56D9;
+  }
+
+  .scope-radio {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-border);
+    flex-shrink: 0;
+    margin-top: 2px;
+    position: relative;
+  }
+
+  .scope-radio-checked {
+    border-color: #7F56D9;
+    background: #7F56D9;
+  }
+
+  .scope-radio-checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #FFFFFF;
+  }
+
+  .scope-option-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+  }
+
+  .scope-option-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 22px;
+  }
+
+  .scope-option-desc {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-text-tertiary);
+    line-height: 20px;
+  }
+
+  .scope-warning {
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning-border);
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--color-warning-text);
+    line-height: 22px;
+  }
+
+  .scope-zero-banner {
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: var(--color-bg-disabled);
+    border: 1px solid var(--color-border-secondary);
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    line-height: 22px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- Error bar (fixed, appears on any screen)                   -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="error-bar">
+  <span class="error-bar-text" id="error-bar-text">An error occurred.</span>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- Screen 1 — Intro                                           -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="screen-1" class="screen active">
+  <!-- Logo header -->
+  <div class="logo-header">
+    <div class="logo-wrap">
+      <img src="data:image/png;base64,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" alt="StyleToToken" />
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;flex:1;">
+      <p class="screen-title">Styles to Variables</p>
+      <p class="screen-subtitle">Convert Paint Styles to a 3-tier token system - with alias-based dark and light modes.</p>
+      <p class="screen-subtitle">Built by <a href="https://notjustsasha.com?utm_source=figma-plugin&utm_medium=plugin&utm_campaign=styles-to-variables" target="_blank" rel="noopener" style="color:#7F56D9;text-decoration:none;">Alexander</a></p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- What it does -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <p class="section-label">What it does</p>
+
+    <div class="feature-row">
+      <div class="feature-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6941C6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+      </div>
+      <div class="feature-text-wrap">
+        <p class="feature-title">Primitives</p>
+        <p class="feature-desc">Paint Styles become base color variables</p>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6941C6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="8" r="5"/>
+          <path d="M10.1 14.9A6 6 0 1 0 14.9 10.1"/>
+        </svg>
+      </div>
+      <div class="feature-text-wrap">
+        <p class="feature-title">Semantic layer</p>
+        <p class="feature-desc">Alias-based dark and light modes via shade mirror - no hardcoded hex</p>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6941C6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+      </div>
+      <div class="feature-text-wrap">
+        <p class="feature-title">Component tokens + node rebinding</p>
+        <p class="feature-desc">Every node bound to the new variable system in one run</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <button class="btn btn-primary" id="btn-scan">Scan File</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- Screen Already — Already Processed                         -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="screen-already" class="screen">
+  <!-- Header -->
+  <div class="screen-header">
+    <div>
+      <span class="badge badge-gray">Migration detected</span>
+    </div>
+    <p class="screen-title">This file has already been migrated</p>
+    <p class="screen-subtitle">Found existing Primitives, Semantic, and Component variable collections.</p>
+  </div>
+
+  <!-- Existing variable counts -->
+  <div class="value-blocks">
+    <div class="value-block">
+      <div class="value-block-inner">
+        <div class="value-icon-wrap success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          </svg>
+        </div>
+        <div class="value-number-wrap">
+          <span class="value-number" id="already-primitives-count">—</span>
+          <span class="value-label">Primitives</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="value-block">
+      <div class="value-block-inner">
+        <div class="value-icon-wrap success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="8" r="5"/>
+            <path d="M10.1 14.9A6 6 0 1 0 14.9 10.1"/>
+          </svg>
+        </div>
+        <div class="value-number-wrap">
+          <span class="value-number" id="already-semantic-count">—</span>
+          <span class="value-label">Semantic</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="value-block">
+      <div class="value-block-inner">
+        <div class="value-icon-wrap success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+        </div>
+        <div class="value-number-wrap">
+          <span class="value-number" id="already-component-count">—</span>
+          <span class="value-label">Component</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Component count line -->
+  <p class="screen-subtitle" id="already-component-line"></p>
+  <!-- Actions -->
+  <div class="btn-actions">
+    <button class="btn btn-primary" id="btn-rebind-only">Re-run rebinding</button>
+    <button class="btn btn-ghost" id="btn-update-variables">Update variables</button>
+    <button class="btn btn-ghost" id="btn-already-cancel">Cancel</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- Screen 2A — Scan Results (with existing collections)       -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="screen-2a" class="screen">
+  <!-- Header -->
+  <div class="screen-header">
+    <p class="screen-title" id="s2a-title">Found 421 Paint Styles</p>
+    <p class="screen-subtitle">Will generate Primitives, Semantic, and Component variable collections with light + dark modes.</p>
+  </div>
+
+  <!-- Theme card -->
+  <div class="theme-card" id="s2a-theme-card">
+    <div class="theme-text-wrap">
+      <p class="theme-text-primary" id="s2a-theme-label">Source theme is Light</p>
+      <p class="theme-text-secondary" id="s2a-theme-desc">Dark mode will be derived from light.</p>
+    </div>
+    <div class="theme-toggle">
+      <button class="theme-btn" id="s2a-btn-dark" title="Dark" aria-label="Switch to dark mode" onclick="setTheme('dark')">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M17.5 10.79A7.5 7.5 0 1 1 9.21 2.5a5.83 5.83 0 0 0 8.29 8.29z" stroke="#404040" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="theme-btn active" id="s2a-btn-light" title="Light" aria-label="Switch to light mode" onclick="setTheme('light')">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="3.5" stroke="#404040" stroke-width="1.5"/>
+          <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.41 1.41M14.37 14.37l1.41 1.41M4.22 15.78l1.41-1.41M14.37 5.63l1.41-1.41" stroke="#404040" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Existing vars warning -->
+  <div class="warn-section" id="s2a-existing-section">
+    <p class="warn-section-label">Existing Variables detected</p>
+    <div class="info-badge info-badge-yellow" id="s2a-existing-text">
+      This file has 3 existing Variable collections. They won't be modified - new collections will be added alongside.
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="btn-actions">
+    <button class="btn btn-primary" id="btn-s2a-run">Build Variables</button>
+    <button class="btn btn-ghost" id="btn-s2a-cancel">Cancel</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- Screen 2B — Scan Results (clean, no existing collections) -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="screen-2b" class="screen">
+  <!-- Header -->
+  <div class="screen-header">
+    <p class="screen-title" id="s2b-title">Found 421 Paint Styles</p>
+    <p class="screen-subtitle">Will generate Primitives, Semantic, and Component variable collections with light + dark modes.</p>
+  </div>
+
+  <!-- Theme card -->
+  <div class="theme-card">
+    <div class="theme-text-wrap">
+      <p class="theme-text-primary" id="s2b-theme-label">Source theme is Light</p>
+      <p class="theme-text-secondary" id="s2b-theme-desc">Dark mode will be derived from light.</p>
+    </div>
+    <div class="theme-toggle">
+      <button class="theme-btn" id="s2b-btn-dark" title="Dark" aria-label="Switch to dark mode" onclick="setTheme('dark')">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M17.5 10.79A7.5 7.5 0 1 1 9.21 2.5a5.83 5.83 0 0 0 8.29 8.29z" stroke="#404040" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="theme-btn active" id="s2b-btn-light" title="Light" aria-label="Switch to light mode" onclick="setTheme('light')">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="3.5" stroke="#404040" stroke-width="1.5"/>
+          <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.41 1.41M14.37 14.37l1.41 1.41M4.22 15.78l1.41-1.41M14.37 5.63l1.41-1.41" stroke="#404040" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="btn-actions">
+    <button class="btn btn-primary" id="btn-s2b-run">Build Variables</button>
+    <button class="btn btn-ghost" id="btn-s2b-cancel">Cancel</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- Screen 2C — Scan Results (empty, no styles found)         -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="screen-2c" class="screen">
+  <div class="screen-header">
+    <p class="screen-title">No Paint Styles found</p>
+    <p class="screen-subtitle">The current file has no Paint Styles to convert.</p>
+  </div>
+
+  <button class="btn btn-ghost" id="btn-s2c-cancel">Cancel</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- Screen 3 — Building Variables                             -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="screen-3" class="screen">
+  <!-- Header -->
+  <div class="screen-header">
+    <div>
+      <span class="badge badge-gray" id="s3-phase-badge">Step 1 of 2</span>
+    </div>
+    <p class="screen-title">Building Variables</p>
+    <p class="screen-subtitle" id="s3-status-text">Creating Semantic layer ...</p>
+  </div>
+
+  <!-- Value blocks -->
+  <div class="value-blocks">
+    <div class="value-block" id="s3-block-prim">
+      <div class="value-block-inner">
+        <div class="value-icon-wrap" id="s3-icon-prim">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#525252" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          </svg>
+        </div>
+        <div class="value-number-wrap">
+          <span class="value-number" id="s3-prim-val">-</span>
+          <span class="value-label">Primitives</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="value-block dimmed" id="s3-block-sem">
+      <div class="value-block-inner">
+        <div class="value-icon-wrap" id="s3-icon-sem">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#525252" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="8" r="5"/>
+            <path d="M10.1 14.9A6 6 0 1 0 14.9 10.1"/>
+          </svg>
+        </div>
+        <div class="value-number-wrap">
+          <span class="value-number" id="s3-sem-val">-</span>
+          <span class="value-label">Semantic</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="value-block dimmed" id="s3-block-comp">
+      <div class="value-block-inner">
+        <div class="value-icon-wrap" id="s3-icon-comp">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#525252" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+        </div>
+        <div class="value-number-wrap">
+          <span class="value-number" id="s3-comp-val">-</span>
+          <span class="value-label">Component</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- Screen 4 — Variables Created (review gate)                -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="screen-4" class="screen">
+  <!-- Header -->
+  <div class="screen-header">
+    <div>
+      <span class="badge badge-gray">Step 1 of 2 completed</span>
+    </div>
+    <p class="screen-title">Variables created!</p>
+    <p class="screen-subtitle">Review before rebinding: Check the new Primitives, Semantic, and Component collections in the Variables panel (right sidebar). <span id="s4-switch-modes-text">Switch to Dark mode in Semantic collection to verify dark aliases.</span></p>
+  </div>
+
+  <!-- Value blocks (all active) -->
+  <div class="value-blocks">
+    <div class="value-block">
+      <div class="value-block-inner">
+        <div class="value-icon-wrap success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          </svg>
+        </div>
+        <div class="value-number-wrap">
+          <span class="value-number" id="s4-prim-val">—</span>
+          <span class="value-label">Primitives</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="value-block">
+      <div class="value-block-inner">
+        <div class="value-icon-wrap success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="8" r="5"/>
+            <path d="M10.1 14.9A6 6 0 1 0 14.9 10.1"/>
+          </svg>
+        </div>
+        <div class="value-number-wrap">
+          <span class="value-number" id="s4-sem-val">—</span>
+          <span class="value-label">Semantic</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="value-block">
+      <div class="value-block-inner">
+        <div class="value-icon-wrap success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+        </div>
+        <div class="value-number-wrap">
+          <span class="value-number" id="s4-comp-val">—</span>
+          <span class="value-label">Component</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No-components warning -->
+  <div id="no-components-warning" class="warning-badge" style="display:none;">
+    &#9888;&#xFE0E; No component nodes found. Rebinding will have no effect.
+  </div>
+
+  <!-- Scope selector -->
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    <p class="scope-label">Rebinding scope</p>
+    <div class="scope-options">
+      <label class="scope-option scope-option-selected" id="scope-components">
+        <div class="scope-radio scope-radio-checked"></div>
+        <div class="scope-option-text">
+          <span class="scope-option-title">Components only</span>
+          <span class="scope-option-desc" id="scope-components-desc"></span>
+        </div>
+      </label>
+      <label class="scope-option" id="scope-all">
+        <div class="scope-radio"></div>
+        <div class="scope-option-text">
+          <span class="scope-option-title">All matching nodes</span>
+          <span class="scope-option-desc">All nodes with matching fills</span>
+        </div>
+      </label>
+    </div>
+    <div class="scope-warning" id="scope-warning" style="display:none;">
+      Fills on frames, groups, and vectors will also be rebound. Some nodes may receive unexpected tokens.
+    </div>
+    <div class="scope-zero-banner" id="scope-zero-banner" style="display:none;">
+      No component nodes found. Rebinding will have no effect unless you switch to "All matching nodes".
+    </div>
+  </div>
+
+  <!-- Warning badge -->
+  <div class="info-badge info-badge-yellow">
+    This is the last safe exit. Rebinding will update every node in the file. Save your file now, then start rebinding.
+  </div>
+  <!-- Actions -->
+  <div class="btn-actions">
+    <button class="btn btn-primary" id="btn-start-rebinding">Start rebinding</button>
+    <button class="btn btn-ghost" id="btn-stop-here">Keep variables, skip rebinding</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- Screen 5 — Rebinding                                      -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="screen-5" class="screen">
+  <!-- Header -->
+  <div class="screen-header">
+    <div>
+      <span class="badge badge-gray">Step 2 of 2</span>
+    </div>
+    <!-- Progress bar -->
+    <div class="progress-wrap">
+      <div class="progress-track">
+        <div class="progress-fill" id="s5-progress-fill"></div>
+      </div>
+      <span class="progress-label" id="s5-progress-pct">0%</span>
+    </div>
+    <p class="screen-title" id="s5-heading">Starting rebinding…</p>
+    <p class="screen-subtitle">This may take a few minutes for large files.</p>
+  </div>
+
+  <!-- Amber warn badge (don't close plugin) -->
+  <div class="info-badge info-badge-yellow">
+    Don't close the plugin - progress will be lost.
+  </div>
+
+  <!-- Purple info badge -->
+  <div class="info-badge info-badge-purple">
+    Keep Figma in focus - switching apps slows rebinding. Figma throttles plugins when the window is inactive - rebinding can take up to 5x longer in the background.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- Screen 6 — Success                                        -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="screen-6" class="screen" style="position:relative;">
+  <div class="success-gradient"></div>
+
+  <!-- Header -->
+  <div class="logo-header" style="position:relative;">
+    <div class="feature-icon-wrap success">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M17 5L8 14.5L3.5 10" stroke="#16A34A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;flex:1;">
+      <p class="screen-title">All done!</p>
+      <p class="screen-subtitle">Your nodes are now bound to variables. Paint Styles are preserved.</p>
+    </div>
+  </div>
+
+  <div class="divider" style="position:relative;"></div>
+
+  <!-- Next steps -->
+  <div style="display:flex;flex-direction:column;gap:16px;position:relative;">
+    <p class="section-label">Next steps</p>
+
+    <div class="feature-row">
+      <div class="step-circle">1</div>
+      <div class="feature-text-wrap">
+        <p class="feature-title">Switch modes in Semantic collection</p>
+        <p class="feature-desc">Toggle Light/Dark - both should reflect correct values.</p>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="step-circle">2</div>
+      <div class="feature-text-wrap">
+        <p class="feature-title">Spot-check component bindings</p>
+        <p class="feature-desc">Select a few components - fills should reference Semantic variables.</p>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="step-circle">3</div>
+      <div class="feature-text-wrap">
+        <p class="feature-title">Edit a Primitive value</p>
+        <p class="feature-desc">Change one color and confirm it propagates through Semantic &#8594; Component chain.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skipped nodes warning (shown conditionally) -->
+  <div id="s6-skipped-section" style="display:none;flex-direction:column;gap:16px;position:relative;">
+    <p class="warn-section-label">Some nodes were skipped</p>
+    <div class="info-badge info-badge-yellow" id="s6-skipped-text">
+      70 styles and some nodes were skipped. Gradients, image fills, and non-component layers (frames, groups, illustrations) are excluded from rebinding. Download the log for a full list.
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div style="position:relative;">
+    <button class="btn btn-ghost" id="btn-download" style="display:none;">Download Log</button>
+  </div>
+
+  <p class="built-by" style="position:relative;">Built by <a href="https://notjustsasha.com?utm_source=figma-plugin&utm_medium=plugin&utm_campaign=styles-to-variables" target="_blank" rel="noopener" style="color:#7F56D9;text-decoration:none;">Alexander</a></p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- Confirmation overlay — C1 (existing vars)                 -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="confirm-overlay">
+  <!-- C1 content -->
+  <div class="confirm-box" id="confirm-c1">
+    <div class="confirm-content">
+      <p class="confirm-title">Existing Variables detected</p>
+      <p class="confirm-body" id="c1-body">This file already has 3 Variable collections. The plugin will add new Primitives, Semantic, and Component collections alongside them. Your existing variables will not be modified or deleted.</p>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn-ghost-auto" id="btn-c1-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-c1-proceed">Add collections alongside</button>
+    </div>
+  </div>
+
+  <!-- C2 content -->
+  <div class="confirm-box" id="confirm-c2" style="display:none;">
+    <div class="confirm-content">
+      <p class="confirm-title">Skip rebinding and keep variables only?</p>
+      <p class="confirm-body">Variables will be kept. Node fills will remain linked to Paint Styles — not to the new variables.</p>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn-ghost-auto" id="btn-c2-back">Back to review</button>
+      <button class="btn btn-primary" id="btn-c2-confirm">Yes, skip rebinding</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  var logText = '';
+  var phaseAStats = { primitives: 0, semantic: 0, components: 0 };
+  var userThemeOverride = null;
+  var currentScreen = 'screen-1';
+  var lastSourceTheme = 'light';
+  var errorDismissTimer = null;
+  var scannedComponentCount = 0;
+  var selectedScope = 'components';
+  var rebindOnlyMode = false;
+  var alreadyProcessedData = null;
+
+  function animateCounter(elementId, targetValue, duration) {
+    var el = document.getElementById(elementId);
+    if (!el) return;
+    if (typeof requestAnimationFrame === 'undefined') {
+      el.textContent = targetValue;
+      return;
+    }
+    var start = parseInt(el.textContent) || 0;
+    var startTime = null;
+    function step(timestamp) {
+      if (!startTime) startTime = timestamp;
+      var progress = Math.min((timestamp - startTime) / duration, 1);
+      el.textContent = Math.floor(start + (targetValue - start) * progress);
+      if (progress < 1) requestAnimationFrame(step);
+      else el.textContent = targetValue;
+    }
+    requestAnimationFrame(step);
+  }
+
+  function resizeCurrent() {
+    var el = document.getElementById(currentScreen);
+    if (!el) { return; }
+    var h = Math.round((el.scrollHeight || el.offsetHeight || 500) * 0.75);
+    try {
+      parent.postMessage({ pluginMessage: { type: 'resize', width: 353, height: h } }, '*');
+    } catch(e) {}
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(function(s) {
+      s.classList.remove('active');
+    });
+    var el = document.getElementById(id);
+    if (el) el.classList.add('active');
+    currentScreen = id;
+    resizeCurrent();
+  }
+
+  function hideOverlay() {
+    document.getElementById('confirm-overlay').classList.remove('visible');
+    document.getElementById('confirm-c1').style.display = '';
+    document.getElementById('confirm-c2').style.display = 'none';
+  }
+
+  function showC1Overlay(count) {
+    var body = 'This file already has ' + count + ' Variable collection' + (count !== 1 ? 's' : '') + '. The plugin will add new Primitives, Semantic, and Component collections alongside them. Your existing variables will not be modified or deleted.';
+    document.getElementById('c1-body').textContent = body;
+    document.getElementById('confirm-c1').style.display = '';
+    document.getElementById('confirm-c2').style.display = 'none';
+    document.getElementById('confirm-overlay').classList.add('visible');
+  }
+
+  function showC2Overlay() {
+    document.getElementById('confirm-c1').style.display = 'none';
+    document.getElementById('confirm-c2').style.display = '';
+    document.getElementById('confirm-overlay').classList.add('visible');
+  }
+
+  function setTheme(theme) {
+    userThemeOverride = theme;
+    // Update both screen 2a and 2b toggles
+    ['2a', '2b'].forEach(function(suffix) {
+      var btnLight = document.getElementById('s' + suffix + '-btn-light');
+      var btnDark = document.getElementById('s' + suffix + '-btn-dark');
+      if (!btnLight || !btnDark) return;
+      if (theme === 'light') {
+        btnLight.classList.add('active');
+        btnDark.classList.remove('active');
+      } else {
+        btnDark.classList.add('active');
+        btnLight.classList.remove('active');
+      }
+    });
+    // Update theme label and description texts
+    var label = theme === 'light' ? 'Source theme is Light' : 'Source theme is Dark';
+    var desc = theme === 'light' ? 'Dark mode will be derived from light.' : 'Light mode will be derived from dark.';
+    var el2a = document.getElementById('s2a-theme-label');
+    var el2b = document.getElementById('s2b-theme-label');
+    if (el2a) el2a.textContent = label;
+    if (el2b) el2b.textContent = label;
+    var desc2a = document.getElementById('s2a-theme-desc');
+    var desc2b = document.getElementById('s2b-theme-desc');
+    if (desc2a) desc2a.textContent = desc;
+    if (desc2b) desc2b.textContent = desc;
+  }
+
+  function updateValueBlock(blockId, iconId, value, active) {
+    var block = document.getElementById(blockId);
+    var icon = document.getElementById(iconId);
+    if (!block) return;
+    if (active) {
+      block.classList.remove('dimmed');
+      if (icon) icon.classList.add('success');
+    } else {
+      block.classList.add('dimmed');
+      if (icon) icon.classList.remove('success');
+    }
+    // Update icon colors
+    if (icon) {
+      var paths = icon.querySelectorAll('path, circle');
+      paths.forEach(function(p) {
+        p.setAttribute('stroke', active ? '#16A34A' : '#525252');
+      });
+    }
+  }
+
+  function runFromScreen(screen) {
+    var sourceTheme = userThemeOverride;
+    if (!sourceTheme) {
+      // read from active toggle
+      var btnLight = document.getElementById(screen + '-btn-light');
+      if (!btnLight) {
+        console.warn('[StyleToToken] runFromScreen: unknown screen "' + screen + '", defaulting to light theme');
+        sourceTheme = 'light';
+      } else if (btnLight.classList.contains('active')) {
+        sourceTheme = 'light';
+      } else {
+        sourceTheme = 'dark';
+      }
+    }
+    // Reset screen 3
+    document.getElementById('s3-phase-badge').textContent = 'Step 1 of 2';
+    document.getElementById('s3-status-text').textContent = 'Starting...';
+    document.getElementById('s3-prim-val').textContent = '-';
+    document.getElementById('s3-sem-val').textContent = '-';
+    document.getElementById('s3-comp-val').textContent = '-';
+    updateValueBlock('s3-block-prim', 's3-icon-prim', '-', false);
+    updateValueBlock('s3-block-sem', 's3-icon-sem', '-', false);
+    updateValueBlock('s3-block-comp', 's3-icon-comp', '-', false);
+    lastSourceTheme = sourceTheme;
+    showScreen('screen-3');
+    parent.postMessage({ pluginMessage: { type: 'run_phase_a', sourceTheme: sourceTheme } }, '*');
+  }
+
+  function resetToWelcome() {
+    logText = '';
+    phaseAStats = { primitives: 0, semantic: 0, components: 0 };
+    userThemeOverride = null;
+    showScreen('screen-1');
+  }
+
+  // ── Button handlers ──────────────────────────────────────────────────────────
+
+  document.getElementById('btn-scan').addEventListener('click', function() {
+    this.disabled = true;
+    parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
+  });
+
+  document.getElementById('btn-s2a-run').addEventListener('click', function() {
+    runFromScreen('s2a');
+  });
+
+  document.getElementById('btn-s2a-cancel').addEventListener('click', function() {
+    parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    resetToWelcome();
+  });
+
+  document.getElementById('btn-s2b-run').addEventListener('click', function() {
+    runFromScreen('s2b');
+  });
+
+  document.getElementById('btn-s2b-cancel').addEventListener('click', function() {
+    parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    resetToWelcome();
+  });
+
+  document.getElementById('btn-s2c-cancel').addEventListener('click', function() {
+    parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    resetToWelcome();
+  });
+
+  document.getElementById('btn-rebind-only').addEventListener('click', function() {
+    rebindOnlyMode = true;
+    if (alreadyProcessedData) {
+      phaseAStats = {
+        primitives: alreadyProcessedData.primitives,
+        semantic: alreadyProcessedData.semantic,
+        components: alreadyProcessedData.components
+      };
+      scannedComponentCount = alreadyProcessedData.componentCount || 0;
+      animateCounter('s4-prim-val', phaseAStats.primitives, 400);
+      animateCounter('s4-sem-val', phaseAStats.semantic, 400);
+      animateCounter('s4-comp-val', phaseAStats.components, 400);
+    }
+    selectedScope = 'components';
+    var scopeCompLabel = document.getElementById('scope-components');
+    var scopeAllLabel = document.getElementById('scope-all');
+    var scopeCompRadio = scopeCompLabel ? scopeCompLabel.querySelector('.scope-radio') : null;
+    var scopeAllRadio = scopeAllLabel ? scopeAllLabel.querySelector('.scope-radio') : null;
+    if (scopeCompLabel) { scopeCompLabel.className = 'scope-option scope-option-selected'; }
+    if (scopeAllLabel) { scopeAllLabel.className = 'scope-option'; }
+    if (scopeCompRadio) { scopeCompRadio.className = 'scope-radio scope-radio-checked'; }
+    if (scopeAllRadio) { scopeAllRadio.className = 'scope-radio'; }
+    document.getElementById('scope-warning').style.display = 'none';
+    var compDescEl = document.getElementById('scope-components-desc');
+    if (compDescEl) {
+      compDescEl.textContent = scannedComponentCount + ' component node' + (scannedComponentCount !== 1 ? 's' : '') + ' eligible for rebinding';
+    }
+    var zeroBanner = document.getElementById('scope-zero-banner');
+    if (zeroBanner) { zeroBanner.style.display = scannedComponentCount === 0 ? '' : 'none'; }
+    showScreen('screen-4');
+  });
+
+  document.getElementById('btn-update-variables').addEventListener('click', function() {
+    rebindOnlyMode = false;
+    showScreen('screen-3');
+    parent.postMessage({ pluginMessage: { type: 'run_update_migration' } }, '*');
+  });
+
+  document.getElementById('btn-already-cancel').addEventListener('click', function() {
+    parent.postMessage({ pluginMessage: { type: 'close' } }, '*');
+  });
+
+  document.getElementById('btn-start-rebinding').addEventListener('click', function() {
+    document.getElementById('s5-progress-fill').style.width = '0%';
+    document.getElementById('s5-progress-pct').textContent = '0%';
+    document.getElementById('s5-heading').textContent = 'Starting rebinding...';
+    showScreen('screen-5');
+    if (rebindOnlyMode) {
+      parent.postMessage({ pluginMessage: { type: 'run_rebind_only', scope: selectedScope } }, '*');
+    } else {
+      parent.postMessage({ pluginMessage: { type: 'run_phase_b', scope: selectedScope } }, '*');
+    }
+  });
+
+  document.getElementById('btn-stop-here').addEventListener('click', function() {
+    showC2Overlay();
+  });
+
+  document.getElementById('scope-components').addEventListener('click', function() {
+    selectedScope = 'components';
+    this.className = 'scope-option scope-option-selected';
+    this.querySelector('.scope-radio').className = 'scope-radio scope-radio-checked';
+    var scopeAllEl = document.getElementById('scope-all');
+    scopeAllEl.className = 'scope-option';
+    scopeAllEl.querySelector('.scope-radio').className = 'scope-radio';
+    document.getElementById('scope-warning').style.display = 'none';
+    var zeroBanner = document.getElementById('scope-zero-banner');
+    if (zeroBanner) {
+      zeroBanner.style.display = scannedComponentCount === 0 ? '' : 'none';
+    }
+    resizeCurrent();
+  });
+
+  document.getElementById('scope-all').addEventListener('click', function() {
+    selectedScope = 'all';
+    this.className = 'scope-option scope-option-selected';
+    this.querySelector('.scope-radio').className = 'scope-radio scope-radio-checked';
+    var scopeCompEl = document.getElementById('scope-components');
+    scopeCompEl.className = 'scope-option';
+    scopeCompEl.querySelector('.scope-radio').className = 'scope-radio';
+    document.getElementById('scope-warning').style.display = '';
+    document.getElementById('scope-zero-banner').style.display = 'none';
+    resizeCurrent();
+  });
+
+  document.getElementById('btn-download').addEventListener('click', function() {
+    if (!logText) return;
+    var blob = new Blob([logText], { type: 'text/plain' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'styles-to-variables-skip-log.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // C1 overlay
+  document.getElementById('btn-c1-cancel').addEventListener('click', function() {
+    hideOverlay();
+    parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    resetToWelcome();
+  });
+
+  document.getElementById('btn-c1-proceed').addEventListener('click', function() {
+    hideOverlay();
+    parent.postMessage({ pluginMessage: { type: 'proceed' } }, '*');
+  });
+
+  // C2 overlay
+  document.getElementById('btn-c2-back').addEventListener('click', function() {
+    hideOverlay();
+  });
+
+  document.getElementById('btn-c2-confirm').addEventListener('click', function() {
+    hideOverlay();
+    parent.postMessage({ pluginMessage: { type: 'close' } }, '*');
+  });
+
+  // ── Message handler ──────────────────────────────────────────────────────────
+
+  window.addEventListener('message', function(event) {
+    // No event.source check — Figma desktop delivers messages via internal Electron bridge
+    // with an unpredictable source reference. The pluginMessage wrapper is the only reliable filter.
+    var msg = event.data && event.data.pluginMessage;
+    if (!msg) return;
+
+    if (msg.type === 'detected_theme') {
+      var theme = msg.theme || 'light';
+      if (!userThemeOverride) {
+        setTheme(theme);
+      }
+    }
+
+    if (msg.type === 'already_processed') {
+      alreadyProcessedData = {
+        primitives: msg.primitives || 0,
+        semantic: msg.semantic || 0,
+        components: msg.components || 0,
+        componentCount: msg.componentCount || 0,
+        styleCount: msg.styleCount || 0,
+        existingCollections: 3
+      };
+      document.getElementById('btn-scan').disabled = false;
+      document.getElementById('already-primitives-count').textContent = alreadyProcessedData.primitives;
+      document.getElementById('already-semantic-count').textContent = alreadyProcessedData.semantic;
+      document.getElementById('already-component-count').textContent = alreadyProcessedData.components;
+      var compLine = document.getElementById('already-component-line');
+      if (compLine) {
+        compLine.textContent = alreadyProcessedData.componentCount + ' component' + (alreadyProcessedData.componentCount !== 1 ? 's' : '') + ' ready to rebind';
+      }
+      showScreen('screen-already');
+    }
+
+    if (msg.type === 'scan_results') {
+      var count = msg.styleCount || 0;
+      var existing = msg.existingCollections || 0;
+      scannedComponentCount = msg.componentCount || 0;
+      document.getElementById('btn-scan').disabled = false;
+
+      if (count === 0) {
+        showScreen('screen-2c');
+        return;
+      }
+
+      var titleText = 'Found ' + count + ' style' + (count !== 1 ? 's' : '') + ' and ' + scannedComponentCount + ' component' + (scannedComponentCount !== 1 ? 's' : '');
+
+      if (existing > 0) {
+        document.getElementById('s2a-title').textContent = titleText;
+        var existingText = 'This file has ' + existing + ' existing Variable collection' + (existing !== 1 ? 's' : '') + '. They won\'t be modified - new collections will be added alongside.';
+        document.getElementById('s2a-existing-text').textContent = existingText;
+        document.getElementById('s2a-existing-section').style.display = '';
+        showScreen('screen-2a');
+      } else {
+        document.getElementById('s2b-title').textContent = titleText;
+        showScreen('screen-2b');
+      }
+    }
+
+    if (msg.type === 'confirm_existing') {
+      showC1Overlay(msg.count || 0);
+    }
+
+    if (msg.type === 'phase') {
+      var phase = msg.phase;
+      var isDone = !!msg.done;
+      var phaseNames = { 1: 'Primitives', 2: 'Semantic', 3: 'Component' };
+      var phaseStatus = {
+        1: { active: 'Creating Primitives...', done: 'Primitives done' },
+        2: { active: 'Creating Semantic layer ...', done: 'Semantic done' },
+        3: { active: 'Creating Component tokens...', done: 'Component done' }
+      };
+      if (phase <= 3) {
+        if (!isDone && phaseStatus[phase]) {
+          document.getElementById('s3-status-text').textContent = phaseStatus[phase].active;
+        }
+        // Activate blocks up to current phase
+        if (phase >= 1) updateValueBlock('s3-block-prim', 's3-icon-prim', '-', phase > 1 || (phase === 1 && isDone));
+        if (phase >= 2) updateValueBlock('s3-block-sem', 's3-icon-sem', '-', phase > 2 || (phase === 2 && isDone));
+        if (phase >= 3) updateValueBlock('s3-block-comp', 's3-icon-comp', '-', phase === 3 && isDone);
+        // Undim pending
+        if (phase === 1) document.getElementById('s3-block-prim').classList.remove('dimmed');
+        if (phase === 2) document.getElementById('s3-block-sem').classList.remove('dimmed');
+        if (phase === 3) document.getElementById('s3-block-comp').classList.remove('dimmed');
+      }
+    }
+
+    if (msg.type === 'stats') {
+      var prim = msg.primitives || 0;
+      var sem = msg.semantic || 0;
+      var comp = msg.components || 0;
+      if (prim > 0) animateCounter('s3-prim-val', prim, 400);
+      else document.getElementById('s3-prim-val').textContent = '-';
+      if (sem > 0) animateCounter('s3-sem-val', sem, 400);
+      else document.getElementById('s3-sem-val').textContent = '-';
+      if (comp > 0) animateCounter('s3-comp-val', comp, 400);
+      else document.getElementById('s3-comp-val').textContent = '-';
+      phaseAStats = { primitives: prim, semantic: sem, components: comp };
+
+      // Activate blocks with numbers
+      if (prim > 0) {
+        document.getElementById('s3-block-prim').classList.remove('dimmed');
+        updateValueBlock('s3-block-prim', 's3-icon-prim', prim, true);
+      }
+      if (sem > 0) {
+        document.getElementById('s3-block-sem').classList.remove('dimmed');
+        updateValueBlock('s3-block-sem', 's3-icon-sem', sem, true);
+      }
+      if (comp > 0) {
+        document.getElementById('s3-block-comp').classList.remove('dimmed');
+        updateValueBlock('s3-block-comp', 's3-icon-comp', comp, true);
+      }
+    }
+
+    if (msg.type === 'status') {
+      var statusEl = document.getElementById('s3-status-text');
+      if (statusEl && currentScreen === 'screen-3') {
+        statusEl.textContent = msg.message;
+      }
+    }
+
+    if (msg.type === 'phase_a_complete') {
+      var pv = msg.primitives || phaseAStats.primitives;
+      var sv = msg.semantic || phaseAStats.semantic;
+      var cv = msg.components || phaseAStats.components;
+      phaseAStats = { primitives: pv, semantic: sv, components: cv };
+      scannedComponentCount = msg.componentCount || 0;
+
+      // Reset scope state when screen-4 becomes active
+      selectedScope = 'components';
+      var scopeCompLabel = document.getElementById('scope-components');
+      var scopeAllLabel = document.getElementById('scope-all');
+      var scopeCompRadio = scopeCompLabel ? scopeCompLabel.querySelector('.scope-radio') : null;
+      var scopeAllRadio = scopeAllLabel ? scopeAllLabel.querySelector('.scope-radio') : null;
+      if (scopeCompLabel) { scopeCompLabel.className = 'scope-option scope-option-selected'; }
+      if (scopeAllLabel) { scopeAllLabel.className = 'scope-option'; }
+      if (scopeCompRadio) { scopeCompRadio.className = 'scope-radio scope-radio-checked'; }
+      if (scopeAllRadio) { scopeAllRadio.className = 'scope-radio'; }
+      document.getElementById('scope-warning').style.display = 'none';
+      var compDescEl = document.getElementById('scope-components-desc');
+      if (compDescEl) {
+        compDescEl.textContent = scannedComponentCount + ' component node' + (scannedComponentCount !== 1 ? 's' : '') + ' eligible for rebinding';
+      }
+      var zeroBanner = document.getElementById('scope-zero-banner');
+      if (zeroBanner) {
+        zeroBanner.style.display = scannedComponentCount === 0 ? '' : 'none';
+      }
+      var noCompWarning = document.getElementById('no-components-warning');
+      if (noCompWarning) {
+        noCompWarning.style.display = scannedComponentCount === 0 ? '' : 'none';
+      }
+
+      showScreen('screen-4');
+      animateCounter('s4-prim-val', pv, 600);
+      animateCounter('s4-sem-val', sv, 600);
+      animateCounter('s4-comp-val', cv, 600);
+      var switchModesEl = document.getElementById('s4-switch-modes-text');
+      if (switchModesEl) {
+        switchModesEl.textContent = lastSourceTheme === 'light'
+          ? 'Switch to Dark mode in Semantic collection to verify dark aliases.'
+          : 'Switch to Light mode in Semantic collection to verify light aliases.';
+      }
+    }
+
+    if (msg.type === 'progress') {
+      var total = msg.total > 0 ? msg.total : 1;
+      var pct = Math.round((msg.current / total) * 100);
+      document.getElementById('s5-progress-fill').style.width = pct + '%';
+      document.getElementById('s5-progress-pct').textContent = pct + '%';
+      document.getElementById('s5-heading').textContent = 'Rebinding ' + msg.current + ' of ' + msg.total + ' nodes...';
+    }
+
+    if (msg.type === 'done') {
+      logText = msg.logText || '';
+      var skipped = msg.skipped || 0;
+      var skippedSection = document.getElementById('s6-skipped-section');
+      var dlBtn = document.getElementById('btn-download');
+
+      if (skipped > 0) {
+        skippedSection.style.display = 'flex';
+        var skipMsg = skipped + ' style' + (skipped !== 1 ? 's' : '') + ' and some nodes were skipped. Gradients and image fills are excluded.';
+        if (msg.scope !== 'all') {
+          skipMsg += ' Non-component layers (frames, groups, illustrations) are also excluded in Components only mode.';
+        }
+        skipMsg += ' Download the log for a full list.';
+        document.getElementById('s6-skipped-text').textContent = skipMsg;
+        if (logText) {
+          dlBtn.style.display = '';
+        } else {
+          dlBtn.style.display = 'none';
+        }
+      } else {
+        skippedSection.style.display = 'none';
+        dlBtn.style.display = 'none';
+      }
+      showScreen('screen-6');
+    }
+
+    if (msg.type === 'error') {
+      document.getElementById('error-bar-text').textContent = msg.message || 'An error occurred.';
+      document.getElementById('error-bar').classList.add('visible');
+      if (errorDismissTimer) clearTimeout(errorDismissTimer);
+      errorDismissTimer = setTimeout(function() {
+        document.getElementById('error-bar').classList.remove('visible');
+      }, 3000);
+    }
+
+  });
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  showScreen('screen-1');
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "Styles to Variables",
+  "id": "a3f7e2c1-9b4d-4e8f-bc6a-1d2e5f780a3c",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"]
+}
