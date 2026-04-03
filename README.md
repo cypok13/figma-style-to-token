@@ -27,14 +27,6 @@ A `Component` collection holds `{base}/{role}` reference tokens, each aliasing t
 
 The plugin traverses every node. For each fill, stroke, or effect referencing a Paint Style, it resolves the matching Semantic or Component variable and binds it using `setBoundVariableForPaint`.
 
-## Results
-
-On a real-world file:
-
-| Primitives | Semantic | Component | Nodes rebound |
-|------------|----------|-----------|---------------|
-| 166 | 107 | 67 | 4,814 |
-
 ## Installation
 
 [Install on Figma Community](https://www.figma.com/community/plugin/1621889680295130350)
