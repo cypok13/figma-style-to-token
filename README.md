@@ -27,7 +27,9 @@ A `Component` collection holds `{base}/{role}` reference tokens. Each Component 
 
 The plugin traverses every node in the file. For each fill, stroke, or effect that references a Paint Style, it resolves the matching Semantic (or Component) variable via a `role|styleId` lookup and calls `setBoundVariableForPaint` to replace the style binding with a variable binding. Scope options control which node types are included.
 
-## Results (Untitled UI FREE)
+## Results
+
+Tested on a production design system file:
 
 | Primitives | Semantic | Component | Nodes rebound |
 |------------|----------|-----------|---------------|
