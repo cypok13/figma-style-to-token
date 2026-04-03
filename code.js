@@ -1146,6 +1146,7 @@ async function executePhaseB(scope) {
 // ── Message handler ───────────────────────────────────────────────────────────
 
 async function executeScan() {
+  await figma.loadAllPagesAsync();
   var styles = await figma.getLocalPaintStylesAsync();
   var allCollections = await figma.variables.getLocalVariableCollectionsAsync();
   var existingCount = allCollections.length;
