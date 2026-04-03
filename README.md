@@ -37,7 +37,7 @@ On a real-world file:
 
 ## Installation
 
-[Install on Figma Community](https://www.figma.com/community/plugin/figma-style-to-token)
+[Install on Figma Community](https://www.figma.com/community/plugin/1621889680295130350)
 
 To run locally: clone this repo, open Figma → Plugins → Development → Import plugin from manifest, select `manifest.json`. No build step — the plugin runs directly in the Figma sandbox. Edit `code.js` and `ui.html` directly.
 
