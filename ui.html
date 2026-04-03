@@ -1722,6 +1722,7 @@
     if (msg.type === 'error') {
       document.getElementById('error-bar-text').textContent = msg.message || 'An error occurred.';
       document.getElementById('error-bar').classList.add('visible');
+      document.getElementById('btn-scan').disabled = false;
       if (errorDismissTimer) clearTimeout(errorDismissTimer);
       errorDismissTimer = setTimeout(function() {
         document.getElementById('error-bar').classList.remove('visible');
