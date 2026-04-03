@@ -719,7 +719,7 @@ async function rebindNodes(semByFillContextKey, semByStrokeContextKey, allNodes,
             if (newPaint) {
               fillsCopy[0] = newPaint;
               node.fills = fillsCopy;
-              node.fillStyleId = '';
+              await node.setFillStyleIdAsync('');
               stats.rebound++;
             } else {
               stats.skipped++;
@@ -751,7 +751,7 @@ async function rebindNodes(semByFillContextKey, semByStrokeContextKey, allNodes,
             if (newStrokePaint) {
               strokesCopy[0] = newStrokePaint;
               node.strokes = strokesCopy;
-              node.strokeStyleId = '';
+              await node.setStrokeStyleIdAsync('');
               stats.rebound++;
             } else {
               stats.skipped++;
