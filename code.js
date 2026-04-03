@@ -783,7 +783,7 @@ async function rebindNodes(semByFillContextKey, semByStrokeContextKey, allNodes,
 
 async function loadAllNodes() {
   await figma.loadAllPagesAsync();
-  var allNodes = figma.root.findAll(function(n) {
+  var allNodes = await figma.root.findAllAsync(function(n) {
     return ('fillStyleId' in n && n.fillStyleId && n.fillStyleId !== figma.mixed) ||
            ('strokeStyleId' in n && n.strokeStyleId && n.strokeStyleId !== figma.mixed);
   });
@@ -820,7 +820,7 @@ var phaseAState = null;
 
 async function runPlugin(overrideTheme) {
   try {
-    var styles = figma.getLocalPaintStyles();
+    var styles = await figma.getLocalPaintStylesAsync();
 
     if (styles.length === 0) {
       figma.ui.postMessage({ type: 'error', message: 'No Paint Styles found in this file. StyleToToken requires at least one Paint Style.' });
@@ -828,7 +828,7 @@ async function runPlugin(overrideTheme) {
     }
 
     // Check existing variables
-    var existingCollections = figma.variables.getLocalVariableCollections();
+    var existingCollections = await figma.variables.getLocalVariableCollectionsAsync();
     if (existingCollections.length > 0) {
       figma.ui.postMessage({ type: 'confirm_existing', count: existingCollections.length });
       pendingRun = true;
@@ -885,7 +885,7 @@ async function executePhaseA(styles, overrideTheme) {
     figma.ui.postMessage({ type: 'phase', phase: 3, done: true });
 
     // Read accurate counts from actual collections (handles edge cases where some were skipped)
-    var finalCollections = figma.variables.getLocalVariableCollections();
+    var finalCollections = await figma.variables.getLocalVariableCollectionsAsync();
     var primColl = finalCollections.find(function(c) { return c.name === 'Primitives'; });
     var semColl = finalCollections.find(function(c) { return c.name === 'Semantic'; });
     var compColl = finalCollections.find(function(c) { return c.name === 'Component'; });
@@ -927,15 +927,15 @@ async function executePhaseA(styles, overrideTheme) {
 // Rebuild context maps from Semantic collection + Paint Styles using COLOR matching.
 // Color-based matching handles deduplicated styles (multiple styles sharing one Primitive).
 // Works regardless of node state — does not require any fillStyleId to still be set.
-function buildContextMapsFromCollections() {
+async function buildContextMapsFromCollections() {
   var result = { semByFillContextKey: {}, semByStrokeContextKey: {} };
 
-  var allCollections = figma.variables.getLocalVariableCollections();
+  var allCollections = await figma.variables.getLocalVariableCollectionsAsync();
   var semColl = allCollections.find(function(c) { return c.name === 'Semantic'; });
   var primColl = allCollections.find(function(c) { return c.name === 'Primitives'; });
   if (!semColl || !primColl) return result;
 
-  var allVars = figma.variables.getLocalVariables('COLOR');
+  var allVars = await figma.variables.getLocalVariablesAsync('COLOR');
   var primVarById = {};
   allVars.forEach(function(v) {
     if (v.variableCollectionId === primColl.id) primVarById[v.id] = v;
@@ -971,7 +971,7 @@ function buildContextMapsFromCollections() {
   });
 
   // For each Paint Style: match by fill color → emit role|styleId entries for all roles found
-  var styles = figma.getLocalPaintStyles();
+  var styles = await figma.getLocalPaintStylesAsync();
   styles.forEach(function(style) {
     if (!style.paints || style.paints.length === 0 || style.paints[0].type !== 'SOLID') return;
     var c = style.paints[0].color;
@@ -995,7 +995,7 @@ function buildContextMapsFromCollections() {
 async function buildContextMapsFromNodes(allNodes) {
   var semByFillContextKey = {};
   var semByStrokeContextKey = {};
-  var boundVars = figma.variables.getLocalVariables('COLOR');
+  var boundVars = await figma.variables.getLocalVariablesAsync('COLOR');
   var semVarById = {};
   boundVars.forEach(function(v) { semVarById[v.id] = v; });
 
@@ -1035,7 +1035,7 @@ async function buildContextMapsFromNodes(allNodes) {
 }
 
 async function executeRebindOnly(scope) {
-  var allCollections = figma.variables.getLocalVariableCollections();
+  var allCollections = await figma.variables.getLocalVariableCollectionsAsync();
   var primColl = allCollections.find(function(c) { return c.name === 'Primitives'; });
   var semColl = allCollections.find(function(c) { return c.name === 'Semantic'; });
   var compColl = allCollections.find(function(c) { return c.name === 'Component'; });
@@ -1050,7 +1050,7 @@ async function executeRebindOnly(scope) {
     var allNodes = await loadAllNodes();
 
     // Primary: rebuild from Semantic collection + Paint Styles (works regardless of node state)
-    var maps = buildContextMapsFromCollections();
+    var maps = await buildContextMapsFromCollections();
 
     // Supplement with any entries found on nodes with both fillStyleId + bound variable
     var nodeMaps = await buildContextMapsFromNodes(allNodes);
@@ -1145,11 +1145,47 @@ async function executePhaseB(scope) {
 
 // ── Message handler ───────────────────────────────────────────────────────────
 
+async function executeScan() {
+  var styles = await figma.getLocalPaintStylesAsync();
+  var allCollections = await figma.variables.getLocalVariableCollectionsAsync();
+  var existingCount = allCollections.length;
+  var detectedTheme = detectTheme(styles);
+  var componentNodes = figma.root.findAllWithCriteria({ types: ['COMPONENT'] });
+  var existingPluginCollections = allCollections.filter(function(c) {
+    return c.name === 'Primitives' || c.name === 'Semantic' || c.name === 'Component';
+  });
+  var alreadyProcessed = figma.root.getPluginData('styletotoken-v1') === 'true';
+  if (alreadyProcessed) {
+    var counts = {};
+    existingPluginCollections.forEach(function(c) { counts[c.name] = c.variableIds.length; });
+    var totalVars = (counts['Primitives'] || 0) + (counts['Semantic'] || 0) + (counts['Component'] || 0);
+    // pluginData is not undoable — if flag is set but collections are empty, the user rolled back.
+    // Reset stale flag and treat as fresh file.
+    if (totalVars === 0) {
+      figma.root.setPluginData('styletotoken-v1', '');
+      figma.ui.postMessage({ type: 'detected_theme', theme: detectedTheme });
+      figma.ui.postMessage({ type: 'scan_results', styleCount: styles.length, existingCollections: existingCount, componentCount: componentNodes.length });
+      return;
+    }
+    figma.ui.postMessage({
+      type: 'already_processed',
+      primitives: counts['Primitives'] || 0,
+      semantic: counts['Semantic'] || 0,
+      components: counts['Component'] || 0,
+      componentCount: componentNodes.length,
+      styleCount: styles.length
+    });
+    return;
+  }
+  figma.ui.postMessage({ type: 'detected_theme', theme: detectedTheme });
+  figma.ui.postMessage({ type: 'scan_results', styleCount: styles.length, existingCollections: existingCount, componentCount: componentNodes.length });
+}
+
 var pendingOverrideTheme = null;
 
 async function executeUpdateMigration() {
   try {
-    var allCollections = figma.variables.getLocalVariableCollections();
+    var allCollections = await figma.variables.getLocalVariableCollectionsAsync();
     var primColl = allCollections.find(function(c) { return c.name === 'Primitives'; });
     var semColl  = allCollections.find(function(c) { return c.name === 'Semantic'; });
 
@@ -1159,7 +1195,7 @@ async function executeUpdateMigration() {
         .filter(function(c) { return ['Primitives', 'Semantic', 'Component'].indexOf(c.name) !== -1; })
         .forEach(function(c) { c.remove(); });
       figma.root.setPluginData('styletotoken-v1', '');
-      var freshStyles = figma.getLocalPaintStyles();
+      var freshStyles = await figma.getLocalPaintStylesAsync();
       await executePhaseA(freshStyles, detectTheme(freshStyles));
       return;
     }
@@ -1169,7 +1205,7 @@ async function executeUpdateMigration() {
     figma.ui.postMessage({ type: 'status', message: 'Updating Primitives...' });
 
     // Step 1: capture old Primitive name for each Semantic alias (by var ID)
-    var allVars = figma.variables.getLocalVariables('COLOR');
+    var allVars = await figma.variables.getLocalVariablesAsync('COLOR');
     var oldPrimById = {};
     allVars.filter(function(v) { return v.variableCollectionId === primColl.id; })
       .forEach(function(v) { oldPrimById[v.id] = v; });
@@ -1201,7 +1237,7 @@ async function executeUpdateMigration() {
     primColl.remove();
 
     // Step 3: re-create Primitives from current Paint Styles
-    var styles = figma.getLocalPaintStyles();
+    var styles = await figma.getLocalPaintStylesAsync();
     var theme = detectTheme(styles);
     var primResult = createPrimitives(styles);
 
@@ -1210,8 +1246,8 @@ async function executeUpdateMigration() {
     figma.ui.postMessage({ type: 'status', message: 'Re-linking Semantic aliases...' });
 
     // Step 4: index new Primitive vars by name
-    var newAllVars = figma.variables.getLocalVariables('COLOR');
-    var newPrimColl = figma.variables.getLocalVariableCollections().find(function(c) { return c.name === 'Primitives'; });
+    var newAllVars = await figma.variables.getLocalVariablesAsync('COLOR');
+    var newPrimColl = (await figma.variables.getLocalVariableCollectionsAsync()).find(function(c) { return c.name === 'Primitives'; });
     var newPrimsByName = {};
     if (newPrimColl) {
       newAllVars.filter(function(v) { return v.variableCollectionId === newPrimColl.id; })
@@ -1234,9 +1270,9 @@ async function executeUpdateMigration() {
     figma.ui.postMessage({ type: 'phase', phase: 3, done: true }); // Component unchanged
 
     // Step 6: build phaseAState so Phase B (rebind) works if user wants it
-    var rebuildMaps = buildContextMapsFromCollections();
+    var rebuildMaps = await buildContextMapsFromCollections();
     var allNodes = await loadAllNodes();
-    var finalColls = figma.variables.getLocalVariableCollections();
+    var finalColls = await figma.variables.getLocalVariableCollectionsAsync();
     var fPrimColl = finalColls.find(function(c) { return c.name === 'Primitives'; });
     var fSemColl  = finalColls.find(function(c) { return c.name === 'Semantic'; });
     var fCompColl = finalColls.find(function(c) { return c.name === 'Component'; });
@@ -1280,44 +1316,15 @@ figma.ui.onmessage = function(msg) {
     });
   } else if (msg.type === 'proceed') {
     pendingRun = false;
-    var styles = figma.getLocalPaintStyles();
-    executePhaseA(styles, pendingOverrideTheme).catch(function(e) {
+    figma.getLocalPaintStylesAsync().then(function(styles) {
+      return executePhaseA(styles, pendingOverrideTheme);
+    }).catch(function(e) {
       figma.ui.postMessage({ type: 'error', message: e.message });
     });
   } else if (msg.type === 'scan') {
-    var styles = figma.getLocalPaintStyles();
-    var allCollections = figma.variables.getLocalVariableCollections();
-    var existingCount = allCollections.length;
-    var detectedTheme = detectTheme(styles);
-    var componentNodes = figma.root.findAllWithCriteria({ types: ['COMPONENT'] });
-    var existingPluginCollections = allCollections.filter(function(c) {
-      return c.name === 'Primitives' || c.name === 'Semantic' || c.name === 'Component';
+    executeScan().catch(function(e) {
+      figma.ui.postMessage({ type: 'error', message: e.message });
     });
-    var alreadyProcessed = figma.root.getPluginData('styletotoken-v1') === 'true';
-    if (alreadyProcessed) {
-      var counts = {};
-      existingPluginCollections.forEach(function(c) { counts[c.name] = c.variableIds.length; });
-      var totalVars = (counts['Primitives'] || 0) + (counts['Semantic'] || 0) + (counts['Component'] || 0);
-      // pluginData is not undoable — if flag is set but collections are empty, the user rolled back.
-      // Reset stale flag and treat as fresh file.
-      if (totalVars === 0) {
-        figma.root.setPluginData('styletotoken-v1', '');
-        figma.ui.postMessage({ type: 'detected_theme', theme: detectedTheme });
-        figma.ui.postMessage({ type: 'scan_results', styleCount: styles.length, existingCollections: existingCount, componentCount: componentNodes.length });
-        return;
-      }
-      figma.ui.postMessage({
-        type: 'already_processed',
-        primitives: counts['Primitives'] || 0,
-        semantic: counts['Semantic'] || 0,
-        components: counts['Component'] || 0,
-        componentCount: componentNodes.length,
-        styleCount: styles.length
-      });
-      return;
-    }
-    figma.ui.postMessage({ type: 'detected_theme', theme: detectedTheme });
-    figma.ui.postMessage({ type: 'scan_results', styleCount: styles.length, existingCollections: existingCount, componentCount: componentNodes.length });
   } else if (msg.type === 'run_rebind_only') {
     executeRebindOnly(msg.scope).catch(function(e) {
       figma.ui.postMessage({ type: 'error', message: e.message });
