@@ -783,7 +783,7 @@ async function rebindNodes(semByFillContextKey, semByStrokeContextKey, allNodes,
 
 async function loadAllNodes() {
   await figma.loadAllPagesAsync();
-  var allNodes = await figma.root.findAllAsync(function(n) {
+  var allNodes = figma.root.findAll(function(n) {
     return ('fillStyleId' in n && n.fillStyleId && n.fillStyleId !== figma.mixed) ||
            ('strokeStyleId' in n && n.strokeStyleId && n.strokeStyleId !== figma.mixed);
   });
@@ -935,7 +935,7 @@ async function buildContextMapsFromCollections() {
   var primColl = allCollections.find(function(c) { return c.name === 'Primitives'; });
   if (!semColl || !primColl) return result;
 
-  var allVars = await figma.variables.getLocalVariablesAsync('COLOR');
+  var allVars = figma.variables.getLocalVariables('COLOR');
   var primVarById = {};
   allVars.forEach(function(v) {
     if (v.variableCollectionId === primColl.id) primVarById[v.id] = v;
@@ -995,7 +995,7 @@ async function buildContextMapsFromCollections() {
 async function buildContextMapsFromNodes(allNodes) {
   var semByFillContextKey = {};
   var semByStrokeContextKey = {};
-  var boundVars = await figma.variables.getLocalVariablesAsync('COLOR');
+  var boundVars = figma.variables.getLocalVariables('COLOR');
   var semVarById = {};
   boundVars.forEach(function(v) { semVarById[v.id] = v; });
 
@@ -1206,7 +1206,7 @@ async function executeUpdateMigration() {
     figma.ui.postMessage({ type: 'status', message: 'Updating Primitives...' });
 
     // Step 1: capture old Primitive name for each Semantic alias (by var ID)
-    var allVars = await figma.variables.getLocalVariablesAsync('COLOR');
+    var allVars = figma.variables.getLocalVariables('COLOR');
     var oldPrimById = {};
     allVars.filter(function(v) { return v.variableCollectionId === primColl.id; })
       .forEach(function(v) { oldPrimById[v.id] = v; });
@@ -1247,7 +1247,7 @@ async function executeUpdateMigration() {
     figma.ui.postMessage({ type: 'status', message: 'Re-linking Semantic aliases...' });
 
     // Step 4: index new Primitive vars by name
-    var newAllVars = await figma.variables.getLocalVariablesAsync('COLOR');
+    var newAllVars = figma.variables.getLocalVariables('COLOR');
     var newPrimColl = (await figma.variables.getLocalVariableCollectionsAsync()).find(function(c) { return c.name === 'Primitives'; });
     var newPrimsByName = {};
     if (newPrimColl) {
