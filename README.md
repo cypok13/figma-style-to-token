@@ -29,7 +29,7 @@ The plugin traverses every node. For each fill, stroke, or effect referencing a 
 
 ## Installation
 
-[Install on Figma Community](https://www.figma.com/community/plugin/1621889680295130350)
+[Install on Figma Community](https://www.figma.com/community/plugin/1621889680295130350/styles-to-variables)
 
 To run locally: clone this repo, open Figma → Plugins → Development → Import plugin from manifest, select `manifest.json`. No build step — the plugin runs directly in the Figma sandbox. Edit `code.js` and `ui.html` directly.
 
