@@ -340,7 +340,6 @@ function detectTheme(styles) {
   }
 
   // Method C: fallback
-  console.log('[THEME] Fallback to Light — no clear signal found');
   return 'light';
 }
 
@@ -783,10 +782,23 @@ async function rebindNodes(semByFillContextKey, semByStrokeContextKey, allNodes,
 
 async function loadAllNodes() {
   await figma.loadAllPagesAsync();
-  var allNodes = figma.root.findAll(function(n) {
-    return ('fillStyleId' in n && n.fillStyleId && n.fillStyleId !== figma.mixed) ||
-           ('strokeStyleId' in n && n.strokeStyleId && n.strokeStyleId !== figma.mixed);
-  });
+  var pages = figma.root.children;
+  var total = pages.length;
+  var allNodes = [];
+  for (var i = 0; i < total; i++) {
+    var page = pages[i];
+    figma.ui.postMessage({
+      type: 'status',
+      message: 'Scanning page ' + (i + 1) + ' of ' + total + ': ' + page.name
+    });
+    var pageNodes = page.findAll(function(n) {
+      return ('fillStyleId' in n && n.fillStyleId && n.fillStyleId !== figma.mixed) ||
+             ('strokeStyleId' in n && n.strokeStyleId && n.strokeStyleId !== figma.mixed);
+    });
+    for (var j = 0; j < pageNodes.length; j++) allNodes.push(pageNodes[j]);
+    // Yield to event loop so UI status update can render
+    await new Promise(function(r) { setTimeout(r, 0); });
+  }
   return allNodes;
 }
 
@@ -838,7 +850,6 @@ async function runPlugin(overrideTheme) {
     await executePhaseA(styles, overrideTheme);
   } catch (e) {
     figma.ui.postMessage({ type: 'error', message: e.message });
-    console.error(e);
   }
 }
 
@@ -920,7 +931,6 @@ async function executePhaseA(styles, overrideTheme) {
 
   } catch (e) {
     figma.ui.postMessage({ type: 'error', message: e.message });
-    console.error(e);
   }
 }
 
@@ -1092,7 +1102,6 @@ async function executeRebindOnly(scope) {
 
   } catch (e) {
     figma.ui.postMessage({ type: 'error', message: e.message });
-    console.error(e);
   }
 }
 
@@ -1139,14 +1148,44 @@ async function executePhaseB(scope) {
 
   } catch (e) {
     figma.ui.postMessage({ type: 'error', message: e.message });
-    console.error(e);
   }
 }
 
 // ── Message handler ───────────────────────────────────────────────────────────
 
+// Probe the Figma Variables API multi-mode quota. Starter/free plans allow
+// only 1 mode per collection; this plugin requires 2 modes (Light + Dark) on
+// the Semantic collection. We surface the limit upfront so the user does not
+// hit a half-built state mid-run.
+async function checkMultiModeSupport() {
+  var probe = null;
+  try {
+    probe = figma.variables.createVariableCollection('__styletotoken_plan_probe__');
+    probe.addMode('__probe__');
+    probe.remove();
+    // Collapse probe's create+addMode+remove into a single committed undo step
+    // so the temp collection does not reappear if the user presses Cmd+Z later.
+    figma.commitUndo();
+    return true;
+  } catch (e) {
+    try {
+      if (probe) {
+        probe.remove();
+        figma.commitUndo();
+      }
+    } catch (_) {}
+    var msg = String(e && e.message || '');
+    if (/mode/i.test(msg)) return false;
+    throw e;
+  }
+}
+
 async function executeScan() {
   await figma.loadAllPagesAsync();
+  if (!(await checkMultiModeSupport())) {
+    figma.ui.postMessage({ type: 'plan_limit_modes' });
+    return;
+  }
   var styles = await figma.getLocalPaintStylesAsync();
   var allCollections = await figma.variables.getLocalVariableCollectionsAsync();
   var existingCount = allCollections.length;
@@ -1302,7 +1341,18 @@ async function executeUpdateMigration() {
 
   } catch (e) {
     figma.ui.postMessage({ type: 'error', message: e.message });
-    console.error(e);
+  }
+}
+
+async function handleProceed() {
+  try {
+    var styles = await figma.getLocalPaintStylesAsync();
+    await executePhaseA(styles, pendingOverrideTheme);
+  } catch (e) {
+    figma.ui.postMessage({ type: 'error', message: e.message });
+  } finally {
+    pendingRun = false;
+    pendingOverrideTheme = null;
   }
 }
 
@@ -1317,12 +1367,7 @@ figma.ui.onmessage = function(msg) {
       figma.ui.postMessage({ type: 'error', message: e.message });
     });
   } else if (msg.type === 'proceed') {
-    pendingRun = false;
-    figma.getLocalPaintStylesAsync().then(function(styles) {
-      return executePhaseA(styles, pendingOverrideTheme);
-    }).catch(function(e) {
-      figma.ui.postMessage({ type: 'error', message: e.message });
-    });
+    handleProceed();
   } else if (msg.type === 'scan') {
     executeScan().catch(function(e) {
       figma.ui.postMessage({ type: 'error', message: e.message });

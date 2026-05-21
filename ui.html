@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src 'self' data: https://static.figma.com; connect-src 'none';">
 <meta charset="UTF-8" />
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,6 +28,8 @@
     --color-purple-badge-text: #6941C6;
     --color-progress-track: #F5F5F5;
     --color-progress-fill: #7F56D9;
+    --color-stroke-active: #16A34A;
+    --color-stroke-inactive: #525252;
     --color-badge-gray-bg: #F5F5F5;
     --color-badge-gray-text: #404040;
     --shadow-xs: 0px 1px 2px 0px rgba(0,0,0,0.05);
@@ -40,7 +42,7 @@
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    font-family: system-ui, sans-serif;
     background: var(--color-bg-primary);
     color: var(--color-text-primary);
     width: 470px;
@@ -78,7 +80,7 @@
     border-radius: 8px;
     border: none;
     cursor: pointer;
-    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    font-family: system-ui, sans-serif;
     font-size: 16px;
     font-weight: 600;
     line-height: 24px;
@@ -574,7 +576,7 @@
     padding: 0 16px;
     font-size: 16px;
     font-weight: 600;
-    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    font-family: system-ui, sans-serif;
     background: var(--color-bg-primary);
     color: var(--color-text-secondary);
     border: 1px solid var(--color-border);
@@ -709,7 +711,7 @@
     <div style="display:flex;flex-direction:column;gap:12px;flex:1;">
       <p class="screen-title">Styles to Variables</p>
       <p class="screen-subtitle">Convert Paint Styles to a 3-tier token system - with alias-based dark and light modes.</p>
-      <p class="screen-subtitle">Built by <a href="https://notjustsasha.com?utm_source=figma-plugin&utm_medium=plugin&utm_campaign=styles-to-variables" target="_blank" rel="noopener" style="color:#7F56D9;text-decoration:none;">Alexander</a></p>
+      <p class="screen-subtitle">Built by <a href="https://notjustsasha.com" target="_blank" rel="noopener" style="color:var(--color-brand-primary);text-decoration:none;">Alexander</a> <span id="plugin-version" style="color:var(--color-text-tertiary);font-size:11px;"></span></p>
     </div>
   </div>
 
@@ -1186,7 +1188,7 @@
     <button class="btn btn-ghost" id="btn-download" style="display:none;">Download Log</button>
   </div>
 
-  <p class="built-by" style="position:relative;">Built by <a href="https://notjustsasha.com?utm_source=figma-plugin&utm_medium=plugin&utm_campaign=styles-to-variables" target="_blank" rel="noopener" style="color:#7F56D9;text-decoration:none;">Alexander</a></p>
+  <p class="built-by" style="position:relative;">Built by <a href="https://notjustsasha.com" target="_blank" rel="noopener" style="color:var(--color-brand-primary);text-decoration:none;">Alexander</a></p>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════ -->
@@ -1217,9 +1219,21 @@
     </div>
   </div>
 
+  <!-- Plan limit content -->
+  <div class="confirm-box" id="confirm-plan-limit" style="display:none;">
+    <div class="confirm-content">
+      <p class="confirm-title">Multi-mode Variables not available on this plan</p>
+      <p class="confirm-body">This plugin builds a Semantic collection with two modes (Light + Dark). Figma's Starter / Free plan limits Variable collections to a single mode, so the Semantic layer cannot be created here.<br><br>To use Styles to Variables, open this file from a team on Figma Professional, Organization, or Enterprise. No changes have been made to your file.</p>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn btn-primary" id="btn-plan-limit-close">Close</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
+  var PLUGIN_VERSION = '1.0.2';
   var logText = '';
   var phaseAStats = { primitives: 0, semantic: 0, components: 0 };
   var userThemeOverride = null;
@@ -1230,6 +1244,8 @@
   var selectedScope = 'components';
   var rebindOnlyMode = false;
   var alreadyProcessedData = null;
+
+  (function() { var el = document.getElementById('plugin-version'); if (el) el.textContent = 'v' + PLUGIN_VERSION; })();
 
   function animateCounter(elementId, targetValue, duration) {
     var el = document.getElementById(elementId);
@@ -1273,6 +1289,14 @@
     document.getElementById('confirm-overlay').classList.remove('visible');
     document.getElementById('confirm-c1').style.display = '';
     document.getElementById('confirm-c2').style.display = 'none';
+    document.getElementById('confirm-plan-limit').style.display = 'none';
+  }
+
+  function showPlanLimitOverlay() {
+    document.getElementById('confirm-c1').style.display = 'none';
+    document.getElementById('confirm-c2').style.display = 'none';
+    document.getElementById('confirm-plan-limit').style.display = '';
+    document.getElementById('confirm-overlay').classList.add('visible');
   }
 
   function showC1Overlay(count) {
@@ -1330,9 +1354,12 @@
     }
     // Update icon colors
     if (icon) {
+      var rootStyle = getComputedStyle(document.documentElement);
+      var strokeActive = rootStyle.getPropertyValue('--color-stroke-active').trim() || '#16A34A';
+      var strokeInactive = rootStyle.getPropertyValue('--color-stroke-inactive').trim() || '#525252';
       var paths = icon.querySelectorAll('path, circle');
       paths.forEach(function(p) {
-        p.setAttribute('stroke', active ? '#16A34A' : '#525252');
+        p.setAttribute('stroke', active ? strokeActive : strokeInactive);
       });
     }
   }
@@ -1343,7 +1370,6 @@
       // read from active toggle
       var btnLight = document.getElementById(screen + '-btn-light');
       if (!btnLight) {
-        console.warn('[StyleToToken] runFromScreen: unknown screen "' + screen + '", defaulting to light theme');
         sourceTheme = 'light';
       } else if (btnLight.classList.contains('active')) {
         sourceTheme = 'light';
@@ -1515,6 +1541,12 @@
     hideOverlay();
   });
 
+  // Plan limit overlay
+  document.getElementById('btn-plan-limit-close').addEventListener('click', function() {
+    hideOverlay();
+    parent.postMessage({ pluginMessage: { type: 'close' } }, '*');
+  });
+
   document.getElementById('btn-c2-confirm').addEventListener('click', function() {
     hideOverlay();
     parent.postMessage({ pluginMessage: { type: 'close' } }, '*');
@@ -1523,8 +1555,11 @@
   // ── Message handler ──────────────────────────────────────────────────────────
 
   window.addEventListener('message', function(event) {
-    // No event.source check — Figma desktop delivers messages via internal Electron bridge
-    // with an unpredictable source reference. The pluginMessage wrapper is the only reliable filter.
+    // Intentionally no event.source check: Figma Desktop delivers messages via
+    // internal Electron bridge with an unpredictable source reference. The
+    // pluginMessage wrapper is the only reliable filter (Figma plugin sandbox
+    // already isolates the iframe from other origins). Adding a source check
+    // here breaks message delivery in production.
     var msg = event.data && event.data.pluginMessage;
     if (!msg) return;
 
@@ -1582,6 +1617,10 @@
 
     if (msg.type === 'confirm_existing') {
       showC1Overlay(msg.count || 0);
+    }
+
+    if (msg.type === 'plan_limit_modes') {
+      showPlanLimitOverlay();
     }
 
     if (msg.type === 'phase') {

@@ -6,5 +6,8 @@
   "ui": "ui.html",
   "editorType": ["figma"],
   "documentAccess": "dynamic-page",
-  "networkAccess": { "allowedDomains": ["none"] }
+  "networkAccess": {
+    "allowedDomains": ["https://static.figma.com"],
+    "reasoning": "Figma's plugin runtime preloads Inter font faces (Inter-BlackItalic.woff and siblings) from static.figma.com into the plugin iframe. Without this whitelist the runtime emits 'Failed to load resource' warnings on every plugin open. The plugin itself makes no HTTP calls — see code.js."
+  }
 }
